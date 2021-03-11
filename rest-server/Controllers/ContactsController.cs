@@ -7,35 +7,35 @@ namespace rest_server.Controllers
 {
     public class ContactsController
     {
-        private static readonly List<Contacts> ContactsData = new List<Contacts>
+        public static readonly List<Contacts> ContactsData = new List<Contacts>
         {
             new Contacts()
             {
                 ID = "155e4b37-2cc1-40bd-ac27-a028dbe6d30f",
                 LastName = "Petrov",
                 FirstName = "Andrei",
-                NumberPhone = 375257705629,
+                NumberPhone = "375257705629",
             }, 
             new Contacts()
             {
                 ID = "f786c43f-f8bb-4336-bad0-5a7b304365e1",
                 LastName = "Ivanov",
                 FirstName = "Ivan",
-                NumberPhone = 375257705629,
+                NumberPhone = "375257705629",
             }, 
             new Contacts()
             {
                 ID = "c8c09b2b-0398-4c2e-800e-effe1dd9c83f",
                 LastName = "Parhomenko",
                 FirstName = "Vladimir",
-                NumberPhone = 375257705629,
+                NumberPhone = "375257705629",
             }, 
             new Contacts()
             {
                 ID = "7d30f95d-71fd-40e3-8f83-6431e7c5c2c9",
                 LastName = "Pupkin",
                 FirstName = "Vasya",
-                NumberPhone = 375257705629,
+                NumberPhone = "375257705629",
             }, 
             
         };
@@ -52,14 +52,13 @@ namespace rest_server.Controllers
                 var ind = ContactsData.FindIndex(c => c.ID == guid);
                 return ContactsData[ind];
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 return null;
             }
-
         }
                 
-        public static void Add(string lastName, string firstName, long numberPhone)
+        public static void Add(string lastName, string firstName, string numberPhone)
         {
             ContactsData.Add(
                 new Contacts()
@@ -75,13 +74,31 @@ namespace rest_server.Controllers
         {
             ContactsData.RemoveAll((x) => x.ID == guid);
         }
+
+        public static void Update(string guid, string lastName, string firstName, string numberPhone)
+        {
+            try
+            {
+                var ind = ContactsData.FindIndex(c => c.ID == guid);
+                ContactsData[ind].LastName = lastName;
+                ContactsData[ind].FirstName = firstName;
+                ContactsData[ind].NumberPhone = numberPhone;
+            }
+            catch (Exception)
+            {
+                ContactsData.Add(
+                    new Contacts()
+                    {
+                        ID = guid,
+                        LastName = lastName,
+                        FirstName = firstName,
+                        NumberPhone = numberPhone,
+                    }
+                );
+            }
+        } 
         
         
-        
-        
-        
-        
-       
         private static int GetValue(string value)
         {
             for (int i = 0; i < ContactsData.Count; i++)
