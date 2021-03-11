@@ -33,22 +33,22 @@ namespace rest_server.Models
                     if (obj != null)
                     {
                         data = await JsonSerialization(obj);
-                        OutputData(data, "application/json", HttpStatusCode.OK);  
+                        await OutputData(data, "application/json", HttpStatusCode.OK);  
                     }
                     else
                     {
-                        OutputData(error, "application/json", HttpStatusCode.BadRequest);  
+                        await OutputData(error, "application/json", HttpStatusCode.BadRequest);  
                     }
                 }
                 else
                 { 
                     data = await JsonSerialization(APIController.Get());
-                    OutputData(data, "application/json", HttpStatusCode.OK);
+                    await OutputData(data, "application/json", HttpStatusCode.OK);
                 }
             }
             else
             {
-                OutputData(error, "application/json", HttpStatusCode.NotFound);
+                await OutputData(error, "application/json", HttpStatusCode.NotFound);
             }
             
         }
@@ -69,16 +69,16 @@ namespace rest_server.Models
                         Context.Request.Headers["firstName"], 
                         Context.Request.Headers["numberPhone"]
                         );
-                    OutputData(data, "application/json", HttpStatusCode.OK);
+                    await OutputData(data, "application/json", HttpStatusCode.OK);
                 }
                 else
                 {
-                    OutputData(error, "application/json", HttpStatusCode.BadRequest);
+                    await OutputData(error, "application/json", HttpStatusCode.BadRequest);
                 }
             }
             else
             {
-                OutputData(error, "application/json", HttpStatusCode.NotFound);
+                await OutputData(error, "application/json", HttpStatusCode.NotFound);
             }
         }
 
@@ -100,16 +100,16 @@ namespace rest_server.Models
                         Context.Request.Headers["firstName"], 
                         Context.Request.Headers["numberPhone"]
                     );
-                    OutputData(data, "application/json", HttpStatusCode.OK);
+                    await OutputData(data, "application/json", HttpStatusCode.OK);
                 }
                 else
                 {
-                    OutputData(error, "application/json", HttpStatusCode.BadRequest);
+                    await OutputData(error, "application/json", HttpStatusCode.BadRequest);
                 }
             }
             else
             {
-                OutputData(error, "application/json", HttpStatusCode.NotFound);
+                await OutputData(error, "application/json", HttpStatusCode.NotFound);
             }
         }
 
@@ -124,20 +124,20 @@ namespace rest_server.Models
                 if (!string.IsNullOrEmpty(Context.Request.Headers["id"]))
                 {
                     APIController.Remove(Context.Request.Headers["id"]);
-                    OutputData(data, "application/json", HttpStatusCode.OK);
+                    await OutputData(data, "application/json", HttpStatusCode.OK);
                 }
                 else
                 {
-                    OutputData(error, "application/json", HttpStatusCode.BadRequest);
+                    await OutputData(error, "application/json", HttpStatusCode.BadRequest);
                 }
             }
             else
             {
-                OutputData(error, "application/json", HttpStatusCode.NotFound);
+                await OutputData(error, "application/json", HttpStatusCode.NotFound);
             }
         }
 
-        private static async void OutputData(byte[] data, string contentType, HttpStatusCode status)
+        private static async Task OutputData(byte[] data, string contentType, HttpStatusCode status)
         {
             var request = Context.Request;         
             var response = Context.Response;
@@ -155,7 +155,7 @@ namespace rest_server.Models
         private static async Task<byte[]> JsonSerialization(Object obj)
         {
            var json = JsonConvert.SerializeObject(obj);
-           return Encoding.UTF8.GetBytes(json);
+           return await Task.Run(() => Encoding.UTF8.GetBytes(json));
         }
     }
 }

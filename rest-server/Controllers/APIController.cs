@@ -1,8 +1,10 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Text;
+using System.Threading.Tasks;
 using Newtonsoft.Json;
 using rest_server.Controllers;
 using rest_server.Models;
@@ -11,7 +13,7 @@ namespace rest_server.Controllers
 {
     public static class APIController
     {
-        public static List<Contacts> Get()
+        public static ConcurrentDictionary<string, Contacts> Get()
         {
             return ContactsController.Get();
         }

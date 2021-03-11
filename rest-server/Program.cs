@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 using Newtonsoft.Json;
@@ -61,16 +62,22 @@ namespace rest_server {
 
         public static void Main(string[] args)
         {
+            ContactsController.InitTemplate();
+            int tasksCount = 32; 
             _listener = new HttpListener();
             _listener.Prefixes.Add(Url);
             _listener.Start();
             
             Console.WriteLine("Прослушивание подключений {0}", Url);
 
-            // Handle requests
-            Task listenTask = HandleIncomingConnections();
-            listenTask.GetAwaiter().GetResult();
-            
+            Task[] tasksPool = new Task[tasksCount];
+
+            for (int i = 0; i < tasksCount; i++)
+            {
+                tasksPool[i] = HandleIncomingConnections();
+                tasksPool[i].GetAwaiter().GetResult();
+            }
+
             _listener.Close();
         }
     }
