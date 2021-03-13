@@ -33,7 +33,6 @@ namespace rest_server {
                 Console.WriteLine("     Метод: {0}",req.HttpMethod);
                 Console.WriteLine("     HostName: {0}",req.UserHostName);
                 Console.WriteLine("     {0} \n",req.UserAgent);
-
                 
                 API contacts = new API(ctx, "/contacts");
                 switch (ctx.Request.HttpMethod)
@@ -58,7 +57,6 @@ namespace rest_server {
                 }
             }
         }
-    
 
         public static void Main(string[] args)
         {
@@ -69,9 +67,7 @@ namespace rest_server {
             _listener.Start();
             
             Console.WriteLine("Прослушивание подключений {0}", Url);
-
             Task[] tasksPool = new Task[tasksCount];
-
             for (int i = 0; i < tasksCount; i++)
             {
                 tasksPool[i] = HandleIncomingConnections();

@@ -10,8 +10,7 @@ namespace rest_server.Controllers
     {
         private static readonly ConcurrentDictionary<String, Contacts> ContactsData =
             new ConcurrentDictionary<String, Contacts>();
-
-
+        
         public static void InitTemplate()
         {
             ContactsData.TryAdd(
