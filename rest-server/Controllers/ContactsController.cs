@@ -6,12 +6,12 @@ using rest_server.Models;
 
 namespace rest_server.Controllers
 {
-    public static class ContactsController
+    public class ContactsController: IBaseController<string, Contacts>
     {
-        private static readonly ConcurrentDictionary<String, Contacts> ContactsData =
-            new ConcurrentDictionary<String, Contacts>();
-        
-        public static void InitTemplate()
+        private static readonly ConcurrentDictionary<string, Contacts> ContactsData =
+            new ConcurrentDictionary<string, Contacts>();
+
+        public static void Init()
         {
             ContactsData.TryAdd(
                 "155e4b37-2cc1-40bd-ac27-a028dbe6d30f",
@@ -49,14 +49,9 @@ namespace rest_server.Controllers
                     NumberPhone = "375257705629",
                 }
             );
-            
         }
-        public static ConcurrentDictionary<String, Contacts> Get()
-        {
-            return ContactsData;
-        }
-        
-        public static Contacts GetByID(string guid)
+
+        Contacts IBaseController<string, Contacts>.Get(string guid)
         {
             try
             {
@@ -67,31 +62,32 @@ namespace rest_server.Controllers
                 return null;
             }
         }
-                
-        public static void Add(string lastName, string firstName, string numberPhone)
+
+        ConcurrentDictionary<string, Contacts> IBaseController<string,Contacts>.GetAll()
+        {
+           return ContactsData;
+        }
+
+        void IBaseController<string,Contacts>.Save(string[] param)
         {
             ContactsData.TryAdd(
                 Guid.NewGuid().ToString(),
                 new Contacts()
                 {
-                    LastName = lastName,
-                    FirstName = firstName,
-                    NumberPhone = numberPhone,
+                    LastName = param[0],
+                    FirstName = param[1],
+                    NumberPhone = param[2],
                 }
             );
         }
-        public static void Remove(string guid)
-        {
-            ContactsData.TryRemove(guid, out _);
-        }
 
-        public static void Update(string guid, string lastName, string firstName, string numberPhone)
+        void IBaseController<string,Contacts>.Update(string guid, string[] param)
         {
             try
             {
-                ContactsData[guid].LastName = lastName;
-                ContactsData[guid].FirstName = firstName;
-                ContactsData[guid].NumberPhone = numberPhone;
+                ContactsData[guid].LastName = param[0];
+                ContactsData[guid].FirstName = param[1];
+                ContactsData[guid].NumberPhone = param[2];
             }
             catch (Exception)
             {
@@ -99,13 +95,17 @@ namespace rest_server.Controllers
                     guid,
                     new Contacts()
                     {
-                        LastName = lastName,
-                        FirstName = firstName,
-                        NumberPhone = numberPhone,
+                        LastName = param[0],
+                        FirstName = param[1],
+                        NumberPhone = param[2],
                     }
                 );
             }
-        } 
-
+        }
+        
+        void IBaseController<string,Contacts>.Delete(string guid)
+        {
+            ContactsData.TryRemove(guid, out _);
+        }
     }
 }

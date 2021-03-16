@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
@@ -9,84 +7,87 @@ using rest_server.Controllers;
 
 namespace rest_server.Models
 {
-    public class API
+    public class API<TClass>
     {
         private static HttpListenerContext Context { get; set; } 
         private String AbsolutePath { get; set; }
 
         public API(HttpListenerContext context, String url)
         {
-            API.Context = context;
-            this.AbsolutePath = url.ToLower();
+            Context = context;
+            AbsolutePath = url.ToLower();
         }
         
-        public async void GET()
+        public async Task Get(IBaseController<string, TClass> controller)
         {
             var url = Context.Request.Url.AbsolutePath.ToLower();
-            byte[] data = new byte[] { };
-            byte[] error = new byte[] { };
+            byte[] data = { };
+            byte[] error = { };
             if (url == AbsolutePath)
             {
                 if (!string.IsNullOrEmpty(Context.Request.Headers["id"]))
                 {
-                    var obj = APIController.GetByID(Context.Request.Headers["id"]);
+                    var obj = controller.Get(Context.Request.Headers["id"]);
+                    
                     if (obj != null)
                     {
                         data = await JsonSerialization(obj);
-                        await OutputData(data, "application/json", HttpStatusCode.OK);  
+                        await SendResponse(data, "application/json", HttpStatusCode.OK);  
                     }
                     else
                     {
-                        await OutputData(error, "application/json", HttpStatusCode.BadRequest);  
+                        await SendResponse(error, "application/json", HttpStatusCode.BadRequest);  
                     }
                 }
                 else
                 { 
-                    data = await JsonSerialization(APIController.Get());
-                    await OutputData(data, "application/json", HttpStatusCode.OK);
+                    data = await JsonSerialization(controller.GetAll());
+                    await SendResponse(data, "application/json", HttpStatusCode.OK);
                 }
             }
             else
             {
-                await OutputData(error, "application/json", HttpStatusCode.NotFound);
+                await SendResponse(error, "application/json", HttpStatusCode.NotFound);
             }
             
         }
 
-        public async void POST()
+        public async Task Post(IBaseController<string, TClass> controller)
         {
             var url = Context.Request.Url.AbsolutePath.ToLower();
-            byte[] error = new byte[] { };
-            byte[] data = new byte[] { };
+            byte[] error = { };
+            byte[] data = { };
             if (url == AbsolutePath)
             {
                 if (!string.IsNullOrEmpty(Context.Request.Headers["lastname"]) && 
                     !string.IsNullOrEmpty(Context.Request.Headers["firstName"]) &&
                     !string.IsNullOrEmpty(Context.Request.Headers["numberPhone"]))
                 {
-                    APIController.Add(
-                        Context.Request.Headers["lastname"], 
-                        Context.Request.Headers["firstName"], 
-                        Context.Request.Headers["numberPhone"]
-                        );
-                    await OutputData(data, "application/json", HttpStatusCode.OK);
+                    controller.Save(
+                        new [] {
+                            Context.Request.Headers["lastname"], 
+                            Context.Request.Headers["firstName"], 
+                            Context.Request.Headers["numberPhone"]
+                        }
+                    );
+                    await SendResponse(data, "application/json", HttpStatusCode.OK);
                 }
                 else
                 {
-                    await OutputData(error, "application/json", HttpStatusCode.BadRequest);
+                    await SendResponse(error, "application/json", HttpStatusCode.BadRequest);
                 }
             }
             else
             {
-                await OutputData(error, "application/json", HttpStatusCode.NotFound);
+                await SendResponse(error, "application/json", HttpStatusCode.NotFound);
             }
         }
 
-        public async void PUT()
+        public async Task Put(IBaseController<string, TClass> controller)
         {
             var url = Context.Request.Url.AbsolutePath.ToLower();
-            byte[] error = new byte[] { };
-            byte[] data = new byte[] { };
+            byte[] error = { };
+            byte[] data = { };
             if (url == AbsolutePath)
             {
                 if (!string.IsNullOrEmpty(Context.Request.Headers["id"]) && 
@@ -94,63 +95,59 @@ namespace rest_server.Models
                     !string.IsNullOrEmpty(Context.Request.Headers["firstName"]) &&
                     !string.IsNullOrEmpty(Context.Request.Headers["numberPhone"]))
                 {
-                    APIController.Update(
+                    controller.Update(
                         Context.Request.Headers["id"],
-                        Context.Request.Headers["lastname"], 
-                        Context.Request.Headers["firstName"], 
-                        Context.Request.Headers["numberPhone"]
+                        new[] {
+                            Context.Request.Headers["lastname"], 
+                            Context.Request.Headers["firstName"], 
+                            Context.Request.Headers["numberPhone"]
+                        }
                     );
-                    await OutputData(data, "application/json", HttpStatusCode.OK);
+                    await SendResponse(data, "application/json", HttpStatusCode.OK);
                 }
                 else
                 {
-                    await OutputData(error, "application/json", HttpStatusCode.BadRequest);
+                    await SendResponse(error, "application/json", HttpStatusCode.BadRequest);
                 }
             }
             else
             {
-                await OutputData(error, "application/json", HttpStatusCode.NotFound);
+                await SendResponse(error, "application/json", HttpStatusCode.NotFound);
             }
         }
 
-        public async void DELETE()
+        public async Task Delete(IBaseController<string, TClass> controller)
         {
             var url = Context.Request.Url.AbsolutePath.ToLower();
-            byte[] error = new byte[] { };
-            byte[] data = new byte[] { };
+            byte[] error = { };
+            byte[] data = { };
             if (url == AbsolutePath)
             {
 
                 if (!string.IsNullOrEmpty(Context.Request.Headers["id"]))
                 {
-                    APIController.Remove(Context.Request.Headers["id"]);
-                    await OutputData(data, "application/json", HttpStatusCode.OK);
+                    controller.Delete(Context.Request.Headers["id"]);
+                    await SendResponse(data, "application/json", HttpStatusCode.OK);
                 }
                 else
                 {
-                    await OutputData(error, "application/json", HttpStatusCode.BadRequest);
+                    await SendResponse(error, "application/json", HttpStatusCode.BadRequest);
                 }
             }
             else
             {
-                await OutputData(error, "application/json", HttpStatusCode.NotFound);
+                await SendResponse(error, "application/json", HttpStatusCode.NotFound);
             }
         }
 
-        private static async Task OutputData(byte[] data, string contentType, HttpStatusCode status)
+        public static async Task SendResponse(byte[] data, string contentType, HttpStatusCode status)
         {
-            var request = Context.Request;         
             var response = Context.Response;
-            
             response.StatusCode = (int)status;   
             response.ContentType = contentType;
             response.ContentEncoding = Encoding.UTF8;
             response.ContentLength64 = data.LongLength;
             await response.OutputStream.WriteAsync(data, 0, data.Length);
-            
-            Console.WriteLine("log> {0} запрос был пойман: {1}",
-                request.HttpMethod, request.Url);
-            Console.WriteLine("     Статус: {0}", response.StatusCode);
         }
         private static async Task<byte[]> JsonSerialization(Object obj)
         {

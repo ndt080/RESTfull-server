@@ -33,12 +33,12 @@ namespace rest_server {
                 Console.WriteLine("     Метод: {0}",req.HttpMethod);
                 Console.WriteLine("     HostName: {0}",req.UserHostName);
                 Console.WriteLine("     {0} \n",req.UserAgent);
-                
-                API contacts = new API(ctx, "/contacts");
+                API<Contacts> contacts = new API<Contacts>(ctx, "/contacts");
+                ContactsController controller = new ContactsController();
                 switch (ctx.Request.HttpMethod)
                 {
                     case "GET":
-                        contacts.GET();
+                        await contacts.Get(controller);
                         break;
                     case "POST":
                         if (req.Url.AbsolutePath == "/shutdown")
@@ -46,13 +46,13 @@ namespace rest_server {
                             Console.WriteLine("Shutdown requested");
                             _runServer = false;
                         }
-                        contacts.POST();
+                        await contacts.Post(controller);
                         break;
                     case "PUT":
-                        contacts.PUT();
+                        await contacts.Put(controller);
                         break;
                     case "DELETE":
-                        contacts.DELETE();
+                        await contacts.Delete(controller);
                         break;
                 }
             }
@@ -60,7 +60,7 @@ namespace rest_server {
 
         public static void Main(string[] args)
         {
-            ContactsController.InitTemplate();
+            ContactsController.Init();
             int tasksCount = 32; 
             _listener = new HttpListener();
             _listener.Prefixes.Add(Url);
