@@ -140,7 +140,7 @@ namespace rest_server.Models
             }
         }
 
-        public static async Task SendResponse(byte[] data, string contentType, HttpStatusCode status)
+        private static async Task SendResponse(byte[] data, string contentType, HttpStatusCode status)
         {
             var response = Context.Response;
             response.StatusCode = (int)status;   

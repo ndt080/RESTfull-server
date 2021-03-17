@@ -33,8 +33,11 @@ namespace rest_server {
                 Console.WriteLine("     Метод: {0}",req.HttpMethod);
                 Console.WriteLine("     HostName: {0}",req.UserHostName);
                 Console.WriteLine("     {0} \n",req.UserAgent);
+                
                 API<Contacts> contacts = new API<Contacts>(ctx, "/contacts");
                 ContactsController controller = new ContactsController();
+                
+                
                 switch (ctx.Request.HttpMethod)
                 {
                     case "GET":
@@ -73,7 +76,7 @@ namespace rest_server {
                 tasksPool[i] = HandleIncomingConnections();
                 tasksPool[i].GetAwaiter().GetResult();
             }
-
+            
             _listener.Close();
         }
     }
