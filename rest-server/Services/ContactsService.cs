@@ -2,11 +2,12 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using rest_server.Controllers;
 using rest_server.Models;
 
-namespace rest_server.Controllers
+namespace rest_server.Services
 {
-    public class ContactsController: IBaseController<string, Contacts>
+    public class ContactsService: IBaseController<string, Contacts>
     {
         private static readonly ConcurrentDictionary<string, Contacts> ContactsData =
             new ConcurrentDictionary<string, Contacts>();

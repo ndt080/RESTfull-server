@@ -1,15 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
 using System.Net;
-using System.Threading;
 using System.Threading.Tasks;
-using System.Web;
-using Newtonsoft.Json;
-using rest_server.Controllers;
 using rest_server.Models;
+using rest_server.Services;
 
 namespace rest_server {
     static class HttpServer {
@@ -26,22 +19,20 @@ namespace rest_server {
                 HttpListenerRequest req = ctx.Request;
                 HttpListenerResponse resp = ctx.Response;
                 resp.AppendHeader("Access-Control-Allow-Origin", "*");
-                // Выводим сведения о запросе
-                Console.WriteLine("log> Запрос #: {0}", ++_requestCount);
-                Console.WriteLine("     Время: {0}",DateTime.Now);
+                Console.WriteLine("log> Request #: {0}", ++_requestCount);
+                Console.WriteLine("     Time: {0}",DateTime.Now);
                 Console.WriteLine("     {0}",req.Url.ToString());
-                Console.WriteLine("     Метод: {0}",req.HttpMethod);
+                Console.WriteLine("     Method: {0}",req.HttpMethod);
                 Console.WriteLine("     HostName: {0}",req.UserHostName);
                 Console.WriteLine("     {0} \n",req.UserAgent);
                 
-                API<Contacts> contacts = new API<Contacts>(ctx, "/contacts");
-                ContactsController controller = new ContactsController();
-                
+                Api<Contacts> contacts = new Api<Contacts>(ctx, "/contacts");
+                ContactsService service = new ContactsService();
                 
                 switch (ctx.Request.HttpMethod)
                 {
                     case "GET":
-                        await contacts.Get(controller);
+                        await contacts.Get(service, "id");
                         break;
                     case "POST":
                         if (req.Url.AbsolutePath == "/shutdown")
@@ -49,13 +40,13 @@ namespace rest_server {
                             Console.WriteLine("Shutdown requested");
                             _runServer = false;
                         }
-                        await contacts.Post(controller);
+                        await contacts.Post(service, "lastname", "firstname","numberphone");
                         break;
                     case "PUT":
-                        await contacts.Put(controller);
+                        await contacts.Put(service, "id","lastname", "firstname","numberphone");
                         break;
                     case "DELETE":
-                        await contacts.Delete(controller);
+                        await contacts.Delete(service, "id");
                         break;
                 }
             }
@@ -63,13 +54,13 @@ namespace rest_server {
 
         public static void Main(string[] args)
         {
-            ContactsController.Init();
+            ContactsService.Init();
             int tasksCount = 32; 
             _listener = new HttpListener();
             _listener.Prefixes.Add(Url);
             _listener.Start();
             
-            Console.WriteLine("Прослушивание подключений {0}", Url);
+            Console.WriteLine("Listening connections {0}", Url);
             Task[] tasksPool = new Task[tasksCount];
             for (int i = 0; i < tasksCount; i++)
             {

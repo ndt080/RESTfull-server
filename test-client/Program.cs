@@ -149,6 +149,7 @@ namespace test_client
                 {
                     Console.WriteLine("\t{0}: {1}", h[0].ToLower(), h[1]);
                 }
+
                 result = await client.SendAsync(CreateRequestMessage(RequestUrl, "DELETE", headers));
                 WriteHttpResponseInfo(result, Testing(result.StatusCode, 200) ? "Request success!" : "Request Error!");
             }
