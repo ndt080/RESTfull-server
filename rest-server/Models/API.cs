@@ -8,20 +8,22 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using rest_server.Controllers;
 
-namespace rest_server.Modelss
+namespace rest_server.Models
 {
     public class Api<TClass>
     {
         private static HttpListenerContext Context { get; set; } 
         private String AbsolutePath { get; set; }
+        private IBaseController<string, TClass> Controller { get; set; }
 
-        public Api(HttpListenerContext context, String url)
+        public Api(HttpListenerContext context,IBaseController<string, TClass> ctrl, string url)
         {
             Context = context;
+            Controller = ctrl;
             AbsolutePath = url.ToLower();
         }
         
-        public async Task Get<TParam>(IBaseController<string, TClass> controller, params TParam[] param)
+        public async Task Get<TParam>(params TParam[] param)
         {
             var url = Context.Request.Url.AbsolutePath.ToLower();
             byte[] data = { };
@@ -38,7 +40,7 @@ namespace rest_server.Modelss
                             id = Context.Request.Headers[p.ToString()];
                         }
                     }
-                    var obj = controller.Get(id);
+                    var obj = Controller.Get(id);
                     if (obj != null)
                     {
                         data = await JsonSerialization(obj);
@@ -51,7 +53,7 @@ namespace rest_server.Modelss
                 }
                 else
                 {
-                    data = await JsonSerialization(controller.GetAll());
+                    data = await JsonSerialization(Controller.GetAll());
                     await SendResponse(data, "application/json", HttpStatusCode.OK);
                 }
             }
@@ -62,7 +64,7 @@ namespace rest_server.Modelss
             
         }
 
-        public async Task Post<TParam>(IBaseController<string, TClass> controller,  params TParam[] param)
+        public async Task Post<TParam>(params TParam[] param)
         {
             var url = Context.Request.Url.AbsolutePath.ToLower();
             byte[] error = { };
@@ -79,7 +81,7 @@ namespace rest_server.Modelss
                             array[i] = Context.Request.Headers[param.ToString()];
                         }
                     }
-                    controller.Save(array);
+                    Controller.Save(array);
                     await SendResponse(data, "application/json", HttpStatusCode.OK);
                 }
                 else
@@ -93,7 +95,7 @@ namespace rest_server.Modelss
             }
         }
 
-        public async Task Put<TParam>(IBaseController<string, TClass> controller, params TParam[] param)
+        public async Task Put<TParam>(params TParam[] param)
         {
             var url = Context.Request.Url.AbsolutePath.ToLower();
             byte[] error = { };
@@ -115,7 +117,7 @@ namespace rest_server.Modelss
                             id = Context.Request.Headers[param.ToString()];
                         }
                     }
-                    controller.Update(id, array);
+                    Controller.Update(id, array);
                     await SendResponse(data, "application/json", HttpStatusCode.OK);
                 }
                 else
@@ -129,7 +131,7 @@ namespace rest_server.Modelss
             }
         }
 
-        public async Task Delete<TParam>(IBaseController<string, TClass> controller,  params TParam[] param)
+        public async Task Delete<TParam>(params TParam[] param)
         {
             var url = Context.Request.Url.AbsolutePath.ToLower();
             byte[] error = { };
@@ -146,7 +148,7 @@ namespace rest_server.Modelss
                             id = Context.Request.Headers[p.ToString()];
                         }
                     }
-                    controller.Delete(id);
+                    Controller.Delete(id);
                     await SendResponse(data, "application/json", HttpStatusCode.OK);
                 }
                 else

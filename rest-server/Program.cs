@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 using rest_server.Models;
 using rest_server.Services;
@@ -24,15 +25,14 @@ namespace rest_server {
                 Console.WriteLine("     {0}",req.Url.ToString());
                 Console.WriteLine("     Method: {0}",req.HttpMethod);
                 Console.WriteLine("     HostName: {0}",req.UserHostName);
-                Console.WriteLine("     {0} \n",req.UserAgent);
                 
-                Api<Contacts> contacts = new Api<Contacts>(ctx, "/contacts");
                 ContactsService service = new ContactsService();
-                
+                Api<Contacts> contacts = new Api<Contacts>(ctx, service, "/contacts");
+
                 switch (ctx.Request.HttpMethod)
                 {
                     case "GET":
-                        await contacts.Get(service, "id");
+                        await contacts.Get("id");
                         break;
                     case "POST":
                         if (req.Url.AbsolutePath == "/shutdown")
@@ -40,34 +40,45 @@ namespace rest_server {
                             Console.WriteLine("Shutdown requested");
                             _runServer = false;
                         }
-                        await contacts.Post(service, "lastname", "firstname","numberphone");
+                        await contacts.Post("lastname", "firstname","numberphone");
                         break;
                     case "PUT":
-                        await contacts.Put(service, "id","lastname", "firstname","numberphone");
+                        await contacts.Put( "id","lastname", "firstname","numberphone");
                         break;
                     case "DELETE":
-                        await contacts.Delete(service, "id");
+                        await contacts.Delete("id");
                         break;
                 }
             }
         }
 
-        public static void Main(string[] args)
+        private static WaitCallback StartListenTask(int tasksCount)
+        {
+            Task listenTask = HandleIncomingConnections();
+            listenTask.GetAwaiter().GetResult();
+            return null;
+        }
+
+        public static void Main()
         {
             ContactsService.Init();
-            int tasksCount = 32; 
+            const int maxWorkerThreads = 30; 
+            const int maxCompletionThreads = 20; 
             _listener = new HttpListener();
             _listener.Prefixes.Add(Url);
             _listener.Start();
             
-            Console.WriteLine("Listening connections {0}", Url);
-            Task[] tasksPool = new Task[tasksCount];
-            for (int i = 0; i < tasksCount; i++)
+            if (ThreadPool.SetMaxThreads(maxWorkerThreads, maxCompletionThreads))
             {
-                tasksPool[i] = HandleIncomingConnections();
-                tasksPool[i].GetAwaiter().GetResult();
+                Console.WriteLine("log> \tSet max number threads complete!");
             }
+            ThreadPool.GetMaxThreads(out var nWorkerThreads, out var nCompletionThreads);
+            Console.WriteLine("log> \tMax number threads: {0} \n" +
+                              "\tMax number asynchronous I/O threads: {1}", nWorkerThreads, nCompletionThreads);
+            Console.WriteLine("log> \tListening connections {0}", Url);
             
+            ThreadPool.QueueUserWorkItem(StartListenTask(maxCompletionThreads));
+
             _listener.Close();
         }
     }
